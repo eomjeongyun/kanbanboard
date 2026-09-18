@@ -1,4 +1,4 @@
-const CACHE = 'kanbanboard-shell-v7';
+const CACHE = 'kanbanboard-shell-v8';
 const SHELL = [
   './', './index.html', './style.css', './app.js', './manifest.webmanifest',
   './fonts/YeongdeokSea.woff2',
@@ -17,7 +17,7 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   if (event.request.mode === 'navigate') {
     event.respondWith(caches.match('./index.html').then(cached => {
-      const fresh = fetch(event.request).then(response => {
+      const fresh = fetch(new Request('./index.html', { cache: 'no-cache' })).then(response => {
         if (response.ok) caches.open(CACHE).then(cache => cache.put('./index.html', response.clone()));
         return response;
       }).catch(() => cached);
@@ -26,8 +26,17 @@ self.addEventListener('fetch', event => {
     }));
     return;
   }
-  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-    if (response.ok && new URL(event.request.url).origin === location.origin) caches.open(CACHE).then(cache => cache.put(event.request, response.clone()));
-    return response;
-  })));
+  event.respondWith(caches.match(event.request).then(cached => {
+    const sameOrigin = new URL(event.request.url).origin === location.origin;
+    const networkRequest = new Request(event.request.url, { cache: 'no-cache' });
+    const refresh = fetch(networkRequest).then(response => {
+      if (response.ok && sameOrigin) caches.open(CACHE).then(cache => cache.put(event.request, response.clone()));
+      return response;
+    }).catch(() => null);
+    if (cached) {
+      event.waitUntil(refresh);
+      return cached;
+    }
+    return refresh.then(response => response || new Response('', { status: 503 }));
+  }));
 });
