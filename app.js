@@ -7,7 +7,7 @@
   const columnOrder = ['todo', 'today', 'inprogress', 'waiting', 'done'];
   const columnNames = { todo: '할일', today: '오늘 할일', inprogress: '진행중', waiting: '대기중', done: '완료' };
   const colors = ['#ffd9dc', '#ffe2c2', '#fff1ad', '#d8efcf', '#cfe8ff', '#d8dcf8', '#ead7f7'];
-  const state = { cards: [], openColumns: new Set(), selectedColor: colors[2], deleteArmed: false, deleteTimer: null };
+  const state = { cards: [], selectedColor: colors[2], deleteArmed: false, deleteTimer: null };
   let db;
 
   const el = id => document.getElementById(id);
@@ -150,34 +150,52 @@
   }
 
   function render() {
-    board.className = 'board';
-    if (state.openColumns.has('today')) board.classList.add('today-open');
-    if (state.openColumns.has('waiting')) board.classList.add('waiting-open');
     board.innerHTML = '';
-    columnOrder.forEach(column => board.appendChild(renderColumn(column)));
+    ['todo', 'inprogress', 'done'].forEach(column => board.appendChild(renderColumn(column)));
   }
 
   function renderColumn(column) {
     const cards = state.cards.filter(card => card.column === column).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-    const collapsible = column === 'today' || column === 'waiting';
-    const isOpen = !collapsible || state.openColumns.has(column);
     const section = document.createElement('section');
-    section.className = `column${collapsible ? ' collapsible' : ''}${isOpen ? '' : ' collapsed-column'}`;
+    section.className = 'column';
     section.setAttribute('aria-label', columnNames[column]);
-    if (!isOpen) {
-      section.innerHTML = `<button class="collapsed-tab" type="button" data-toggle="${column}"><span class="count">${cards.length}</span><span>${columnNames[column]}</span></button>`;
-      return section;
-    }
-    const header = document.createElement(collapsible ? 'button' : 'div');
+    const header = document.createElement('div');
     header.className = 'column-header';
-    if (collapsible) { header.type = 'button'; header.dataset.toggle = column; }
-    header.innerHTML = `<h2>${columnNames[column]}</h2><span class="count">${cards.length}</span>${collapsible ? '<span class="collapse-mark">접기</span>' : ''}`;
+    header.innerHTML = `<h2>${columnNames[column]}</h2><span class="count">${cards.length}</span>`;
     const list = document.createElement('div');
     list.className = 'card-list';
     if (!cards.length) list.innerHTML = '<div class="empty">카드가<br>없어요</div>';
     cards.forEach(card => list.appendChild(renderCard(card)));
     section.append(header, list);
     return section;
+  }
+
+  function renderSideLists() {
+    const container = el('sideListSections');
+    container.innerHTML = '';
+    ['today', 'waiting'].forEach(column => {
+      const cards = state.cards.filter(card => card.column === column).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+      const section = document.createElement('section');
+      section.className = 'side-list-section';
+      section.innerHTML = `<div class="side-list-heading"><h3>${columnNames[column]}</h3><span class="count">${cards.length}</span></div>`;
+      const list = document.createElement('div');
+      list.className = 'side-card-list';
+      if (!cards.length) list.innerHTML = '<div class="empty">카드가 없어요</div>';
+      cards.forEach(card => list.appendChild(renderCard(card)));
+      section.appendChild(list);
+      container.appendChild(section);
+    });
+  }
+
+  function openSideList() {
+    renderSideLists();
+    el('sideListLayer').hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSideList() {
+    el('sideListLayer').hidden = true;
+    document.body.style.overflow = '';
   }
 
   function renderCard(card) {
@@ -247,6 +265,7 @@
   async function refresh() {
     state.cards = await getAllCards();
     render();
+    if (!el('sideListLayer').hidden) renderSideLists();
   }
 
   async function moveCard(card, direction) {
@@ -268,23 +287,23 @@
     showToast.timer = setTimeout(() => toast.classList.remove('show'), 1800);
   }
 
-  board.addEventListener('click', async event => {
-    const toggle = event.target.closest('[data-toggle]');
-    if (toggle) {
-      const column = toggle.dataset.toggle;
-      state.openColumns.has(column) ? state.openColumns.delete(column) : state.openColumns.add(column);
-      render();
-      return;
-    }
+  async function handleCardClick(event) {
     const cardElement = event.target.closest('.task-card');
     if (!cardElement) return;
     const card = state.cards.find(item => item.id === cardElement.dataset.id);
     const move = event.target.closest('[data-move]');
     if (move) { await moveCard(card, Number(move.dataset.move)); return; }
+    if (!el('sideListLayer').hidden) closeSideList();
     openSheet(card);
-  });
+  }
+
+  board.addEventListener('click', handleCardClick);
+  el('sideListSections').addEventListener('click', handleCardClick);
 
   el('addButton').addEventListener('click', () => openSheet());
+  el('sideListButton').addEventListener('click', openSideList);
+  el('sideListCloseButton').addEventListener('click', closeSideList);
+  el('sideListBackdrop').addEventListener('click', closeSideList);
   el('closeButton').addEventListener('click', closeSheet);
   el('sheetBackdrop').addEventListener('click', closeSheet);
   el('cardColumn').addEventListener('change', updateCompletedVisibility);
