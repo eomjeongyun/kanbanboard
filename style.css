@@ -66,13 +66,13 @@ button { touch-action: manipulation; }
 .card-list::-webkit-scrollbar { display: none; }
 .empty { padding: 16px 2px; color: #a1aab8; font-size: 9px; line-height: 1.5; text-align: center; }
 
-.task-card { margin-bottom: 7px; border: 1px solid #00000010; border-radius: 8px; padding: 10px; box-shadow: 0 1px 3px #18243312; cursor: pointer; }
+.task-card { margin-bottom: 7px; border: 1px solid #00000010; border-radius: 8px; padding: 10px; box-shadow: 0 1px 3px #18243312; cursor: pointer; overflow: hidden; }
 .board .task-card { aspect-ratio: 1 / 1; min-height: 112px; display: flex; flex-direction: column; overflow: hidden; }
 .board .move-row { margin-top: auto; flex-shrink: 0; }
 .task-text { margin: 0 0 8px; font-size: clamp(15px,4.6vw,19px); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; word-break: break-word; }
 .board .task-text { flex: 1; min-height: 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; }
 .board .task-date { flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.task-date { margin: 2px 0; color: #4b5563; font-size: 11px; line-height: 1.4; }
+.task-date { margin: 2px 0; color: #4b5563; font-size: 11px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .move-row { display: flex; justify-content: space-between; gap: 3px; margin-top: 6px; }
 .move-button { min-width: 0; height: 25px; padding: 0 5px; border: 1px solid #00000016; border-radius: 6px; color: #334155; background: #ffffffb8; font-size: 9px; font-weight: 700; }
 .move-button:disabled { visibility: hidden; }

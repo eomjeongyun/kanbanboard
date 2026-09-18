@@ -1,4 +1,4 @@
-const CACHE = 'kanbanboard-shell-v6';
+const CACHE = 'kanbanboard-shell-v7';
 const SHELL = [
   './', './index.html', './style.css', './app.js', './manifest.webmanifest',
   './fonts/YeongdeokSea.woff2',
