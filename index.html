@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#2775d6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="KanbanBoard">
+  <title>KanbanBoard</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>KanbanBoard</h1>
+      <p>오늘의 일을 한눈에 정리해요</p>
+    </div>
+    <button class="add-button" id="addButton" type="button" aria-label="새 카드 추가">+</button>
+  </header>
+
+  <main class="board-wrap" id="boardWrap">
+    <section class="board" id="board" aria-label="칸반 보드"></section>
+  </main>
+
+  <div class="sheet-layer" id="sheetLayer" hidden>
+    <button class="sheet-backdrop" id="sheetBackdrop" type="button" aria-label="닫기"></button>
+    <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="sheet-handle"></div>
+      <div class="sheet-heading">
+        <h2 id="sheetTitle">새 카드</h2>
+        <button class="close-button" id="closeButton" type="button" aria-label="닫기">×</button>
+      </div>
+      <form id="cardForm">
+        <input id="cardId" type="hidden">
+        <label class="field-label" for="taskText">할 일 내용</label>
+        <textarea id="taskText" rows="3" maxlength="500" required placeholder="할 일을 적어 주세요"></textarea>
+
+        <fieldset>
+          <legend>색상</legend>
+          <div class="swatches" id="swatches"></div>
+        </fieldset>
+
+        <label class="field-label" for="cardColumn">상태</label>
+        <select id="cardColumn">
+          <option value="todo">할일</option>
+          <option value="today">오늘 할일</option>
+          <option value="inprogress">진행중</option>
+          <option value="waiting">대기중</option>
+          <option value="done">완료</option>
+        </select>
+
+        <div class="date-grid">
+          <label>시작일<input id="startAt" type="datetime-local"></label>
+          <label>마감일<input id="dueAt" type="datetime-local"></label>
+          <label class="completed-field" id="completedField">종료일<input id="completedAt" type="datetime-local"></label>
+        </div>
+
+        <div class="form-actions">
+          <button class="delete-button" id="deleteButton" type="button" hidden>삭제</button>
+          <button class="save-button" type="submit">저장</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js"></script>
+</body>
+</html>
