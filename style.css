@@ -74,9 +74,9 @@ button { touch-action: manipulation; }
 .collapsible .column-header { cursor: pointer; background: #f8fbff; }
 .collapse-mark { color: var(--muted); font-size: 11px; }
 
-.task-card { margin-bottom: 5px; border: 1px solid #00000010; border-radius: 7px; padding: 6px; box-shadow: 0 1px 3px #18243312; cursor: pointer; }
-.task-text { margin: 0 0 6px; font-size: clamp(11px,3vw,14px); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
-.task-date { margin: 2px 0; color: #4b5563; font-size: 8px; line-height: 1.35; }
+.task-card { margin-bottom: 7px; border: 1px solid #00000010; border-radius: 8px; padding: 10px; box-shadow: 0 1px 3px #18243312; cursor: pointer; }
+.task-text { margin: 0 0 8px; font-size: clamp(15px,4.6vw,19px); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.task-date { margin: 2px 0; color: #4b5563; font-size: 11px; line-height: 1.4; }
 .move-row { display: flex; justify-content: space-between; gap: 3px; margin-top: 6px; }
 .move-button { min-width: 0; height: 25px; padding: 0 5px; border: 1px solid #00000016; border-radius: 6px; color: #334155; background: #ffffffb8; font-size: 9px; font-weight: 700; }
 .move-button:disabled { visibility: hidden; }
@@ -115,6 +115,6 @@ fieldset { margin: 0; padding: 0; border: 0; }
 @media (max-width: 360px) {
   .board { gap: 3px; padding-inline: 3px; grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 1fr); }
   .column-header { padding-inline: 4px; }
-  .task-card { padding: 5px; }
+  .task-card { padding: 8px; }
   .move-button { padding-inline: 3px; font-size: 8px; }
 }
