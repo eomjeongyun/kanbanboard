@@ -1,10 +1,9 @@
-/* 교보 손글씨 2025 이유빈체 파일을 fonts/YubinHandwriting.woff2에 넣은 뒤 아래 주석을 해제하세요.
 @font-face {
-  font-family: 'YubinHandwriting';
-  src: url('./fonts/YubinHandwriting.woff2') format('woff2');
+  font-family: 'YeongdeokSea';
+  src: url('./fonts/YeongdeokSea.woff2') format('woff2');
+  font-weight: normal;
   font-display: swap;
 }
-*/
 
 :root {
   --blue: #2775d6;
@@ -22,7 +21,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 body {
   color: var(--ink);
   background: var(--page);
-  font-family: 'YubinHandwriting', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-family: 'YeongdeokSea', -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   font-weight: 500;
   -webkit-tap-highlight-color: transparent;
 }
