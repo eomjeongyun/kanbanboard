@@ -43,9 +43,99 @@
   const toInputDate = value => {
     if (!value) return '';
     const date = new Date(value);
-    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    if (Number.isNaN(date.getTime())) return '';
+    return `${date.getMonth() + 1}월 ${date.getDate()}일 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   };
-  const fromInputDate = value => value ? new Date(value).toISOString() : '';
+
+  function parseNaturalDate(value, now = new Date()) {
+    const text = value.trim().replace(/\s+/g, ' ');
+    if (!text) return null;
+    const base = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let year;
+    let month;
+    let day;
+    let dateRecognized = false;
+    let yearWasOmitted = false;
+
+    const relativeDays = { '오늘': 0, '내일': 1, '모레': 2, '글피': 3, '어제': -1 };
+    const relative = Object.keys(relativeDays).find(word => text.includes(word));
+    if (relative) {
+      base.setDate(base.getDate() + relativeDays[relative]);
+      year = base.getFullYear(); month = base.getMonth() + 1; day = base.getDate();
+      dateRecognized = true;
+    } else {
+      const weekMatch = text.match(/(이번|다음)주\s*([일월화수목금토])(?:요일)?/);
+      if (weekMatch) {
+        const weekday = '일월화수목금토'.indexOf(weekMatch[2]);
+        base.setDate(base.getDate() - base.getDay() + (weekMatch[1] === '다음' ? 7 : 0) + weekday);
+        year = base.getFullYear(); month = base.getMonth() + 1; day = base.getDate();
+        dateRecognized = true;
+      } else {
+        const koreanMatch = text.match(/(?:(\d{4})년\s*)?(\d{1,2})월\s*(\d{1,2})일/);
+        const numericMatch = text.match(/(?:(\d{4})\s*[-\/.]\s*)?(\d{1,2})\s*[-\/.]\s*(\d{1,2})(?!\s*\d)/);
+        const match = koreanMatch || numericMatch;
+        if (match) {
+          yearWasOmitted = !match[1];
+          year = match[1] ? Number(match[1]) : now.getFullYear();
+          month = Number(match[2]); day = Number(match[3]);
+          dateRecognized = true;
+        }
+      }
+    }
+
+    let hour = 0;
+    let minute = 0;
+    let timeRecognized = false;
+    const koreanTime = text.match(/(?:(오전|오후)\s*)?(\d{1,2})시(?:\s*(?:(\d{1,2})분|(반)))?/);
+    const colonTime = text.match(/(?:\b(오전|오후)\s*)?(\d{1,2}):(\d{2})(?:\s*(am|pm))?\b/i);
+    if (koreanTime) {
+      hour = Number(koreanTime[2]);
+      minute = koreanTime[4] ? 30 : Number(koreanTime[3] || 0);
+      if (koreanTime[1] === '오후' && hour < 12) hour += 12;
+      if (koreanTime[1] === '오전' && hour === 12) hour = 0;
+      timeRecognized = true;
+    } else if (colonTime) {
+      hour = Number(colonTime[2]); minute = Number(colonTime[3]);
+      const period = (colonTime[4] || colonTime[1] || '').toLowerCase();
+      if ((period === 'pm' || period === '오후') && hour < 12) hour += 12;
+      if ((period === 'am' || period === '오전') && hour === 12) hour = 0;
+      timeRecognized = true;
+    }
+
+    if (!dateRecognized && !timeRecognized) return null;
+    if (!dateRecognized) {
+      year = now.getFullYear(); month = now.getMonth() + 1; day = now.getDate();
+    }
+    if (month < 1 || month > 12 || day < 1 || hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+    let parsed = new Date(year, month - 1, day, hour, minute, 0, 0);
+    if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) return null;
+    if (yearWasOmitted) {
+      const pastLimit = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 62);
+      if (parsed < pastLimit) parsed = new Date(year + 1, month - 1, day, hour, minute, 0, 0);
+    }
+    return parsed;
+  }
+
+  const fromInputDate = value => {
+    const parsed = parseNaturalDate(value);
+    return parsed ? parsed.toISOString() : '';
+  };
+
+  function previewDate(date) {
+    return `→ ${new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'short', hour: 'numeric', minute: '2-digit', hour12: true }).format(date)}`;
+  }
+
+  function updateDatePreview(input) {
+    const preview = el(`${input.id}Preview`);
+    const value = input.value.trim();
+    const parsed = parseNaturalDate(value);
+    preview.classList.toggle('unrecognized', Boolean(value && !parsed));
+    preview.textContent = !value ? '' : (parsed ? previewDate(parsed) : '인식하지 못했어요');
+  }
+
+  function refreshDatePreviews() {
+    ['startAt', 'dueAt', 'completedAt'].forEach(id => updateDatePreview(el(id)));
+  }
 
   function formatDate(value) {
     if (!value) return '';
@@ -121,6 +211,7 @@
     const isDone = el('cardColumn').value === 'done';
     el('completedField').classList.toggle('is-hidden', !isDone);
     if (isDone && !el('completedAt').value) el('completedAt').value = toInputDate(new Date().toISOString());
+    updateDatePreview(el('completedAt'));
   }
 
   function openSheet(card = null) {
@@ -141,6 +232,7 @@
     deleteButton.classList.remove('armed');
     renderSwatches();
     updateCompletedVisibility();
+    refreshDatePreviews();
     sheetLayer.hidden = false;
     document.body.style.overflow = 'hidden';
     setTimeout(() => el('taskText').focus(), 80);
@@ -196,6 +288,14 @@
   el('closeButton').addEventListener('click', closeSheet);
   el('sheetBackdrop').addEventListener('click', closeSheet);
   el('cardColumn').addEventListener('change', updateCompletedVisibility);
+  ['startAt', 'dueAt', 'completedAt'].forEach(id => {
+    const input = el(id);
+    let timer;
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => updateDatePreview(input), 200);
+    });
+  });
   el('swatches').addEventListener('click', event => {
     const swatch = event.target.closest('[data-color]');
     if (!swatch) return;
@@ -214,7 +314,7 @@
     const card = {
       id: id || uuid(), text, color: state.selectedColor, column,
       startAt: fromInputDate(el('startAt').value), dueAt: fromInputDate(el('dueAt').value),
-      completedAt: column === 'done' ? (fromInputDate(el('completedAt').value) || now) : (existing?.completedAt || ''),
+      completedAt: column === 'done' ? (el('completedAt').value.trim() ? fromInputDate(el('completedAt').value) : now) : (existing?.completedAt || ''),
       createdAt: existing?.createdAt || now, updatedAt: now
     };
     await putCard(card);

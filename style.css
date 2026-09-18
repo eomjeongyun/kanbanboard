@@ -91,15 +91,17 @@ button { touch-action: manipulation; }
 .sheet-heading h2 { margin: 2px 0 12px; font-size: 20px; }
 .close-button { width: 36px; height: 36px; border: 0; background: transparent; color: #64748b; font-size: 28px; }
 .field-label, legend, .date-grid label { display: block; margin: 10px 0 6px; color: #4b5563; font-size: 12px; font-weight: 700; }
-textarea, select, input[type="datetime-local"] { width: 100%; border: 1px solid #cfd8e3; border-radius: 9px; background: #fff; color: var(--ink); outline: none; }
+textarea, select, input[type="text"] { width: 100%; border: 1px solid #cfd8e3; border-radius: 9px; background: #fff; color: var(--ink); outline: none; }
 textarea { padding: 10px; resize: vertical; font-size: 16px; line-height: 1.5; }
-select, input[type="datetime-local"] { min-height: 42px; padding: 7px 9px; font-size: 14px; }
+select, input[type="text"] { min-height: 42px; padding: 7px 9px; font-size: 14px; }
 textarea:focus, select:focus, input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px #2775d619; }
 fieldset { margin: 0; padding: 0; border: 0; }
 .swatches { display: flex; justify-content: space-between; max-width: 390px; }
 .swatch { width: 33px; height: 33px; padding: 0; border: 2px solid transparent; border-radius: 50%; box-shadow: inset 0 0 0 1px #00000012; }
 .swatch.selected { border-color: #1f2937; box-shadow: inset 0 0 0 3px #fff; }
 .date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+.date-preview { display: block; min-height: 17px; margin-top: 4px; color: #7b8794; font-size: 11px; font-weight: 400; line-height: 1.35; }
+.date-preview.unrecognized { color: #a46d54; }
 .completed-field { grid-column: 1 / -1; }
 .completed-field.is-hidden { display: none; }
 .form-actions { display: flex; gap: 10px; margin-top: 18px; }

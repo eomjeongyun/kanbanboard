@@ -55,9 +55,9 @@
         </select>
 
         <div class="date-grid">
-          <label>시작일<input id="startAt" type="datetime-local"></label>
-          <label>마감일<input id="dueAt" type="datetime-local"></label>
-          <label class="completed-field" id="completedField">종료일<input id="completedAt" type="datetime-local"></label>
+          <label>시작일<input id="startAt" type="text" inputmode="text" autocomplete="off" placeholder="예: 내일 오후 3시"><small class="date-preview" id="startAtPreview" aria-live="polite"></small></label>
+          <label>마감일<input id="dueAt" type="text" inputmode="text" autocomplete="off" placeholder="예: 9월 20일 15:00"><small class="date-preview" id="dueAtPreview" aria-live="polite"></small></label>
+          <label class="completed-field" id="completedField">종료일<input id="completedAt" type="text" inputmode="text" autocomplete="off" placeholder="예: 오늘 3시 30분"><small class="date-preview" id="completedAtPreview" aria-live="polite"></small></label>
         </div>
 
         <div class="form-actions">
