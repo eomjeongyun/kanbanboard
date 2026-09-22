@@ -76,6 +76,7 @@ button { touch-action: manipulation; }
 .move-row { display: flex; justify-content: space-between; gap: 3px; margin-top: 6px; }
 .move-button { min-width: 0; height: 25px; padding: 0 5px; border: 1px solid #00000016; border-radius: 6px; color: #334155; background: #ffffffb8; font-size: 9px; font-weight: 700; }
 .move-button:disabled { visibility: hidden; }
+.archive-button { color: #7a5300; background: #fff3d6; border-color: #f0d38f; }
 
 .sheet-layer[hidden] { display: none; }
 .sheet-layer { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; }

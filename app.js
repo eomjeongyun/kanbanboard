@@ -143,6 +143,11 @@
     return new Intl.DateTimeFormat('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
   }
 
+  function localDateKey(value) {
+    const date = new Date(value);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
   function safeText(value) {
     const span = document.createElement('span');
     span.textContent = value;
@@ -207,7 +212,9 @@
     const due = card.dueAt ? `<div class="task-date">마감 ${formatDate(card.dueAt)}</div>` : '';
     const done = card.column === 'done' && card.completedAt ? `<div class="task-date">종료 ${formatDate(card.completedAt)}</div>` : '';
     const index = columnOrder.indexOf(card.column);
-    article.innerHTML = `<p class="task-text">${safeText(card.text)}</p>${start}${due}${done}<div class="move-row"><button class="move-button" type="button" data-move="-1" ${index === 0 ? 'disabled' : ''}>← 이전</button><button class="move-button" type="button" data-move="1" ${index === columnOrder.length - 1 ? 'disabled' : ''}>다음 →</button></div>`;
+    const stale = card.column === 'done' && card.completedAt && localDateKey(card.completedAt) < localDateKey(new Date().toISOString());
+    const archive = stale ? `<button class="move-button archive-button" type="button" data-archive="${card.id}">정리</button>` : '';
+    article.innerHTML = `<p class="task-text">${safeText(card.text)}</p>${start}${due}${done}<div class="move-row"><button class="move-button" type="button" data-move="-1" ${index === 0 ? 'disabled' : ''}>← 이전</button>${archive}<button class="move-button" type="button" data-move="1" ${index === columnOrder.length - 1 ? 'disabled' : ''}>다음 →</button></div>`;
     return article;
   }
 
@@ -287,10 +294,27 @@
     showToast.timer = setTimeout(() => toast.classList.remove('show'), 1800);
   }
 
+  const archiveArmed = new Set();
   async function handleCardClick(event) {
     const cardElement = event.target.closest('.task-card');
     if (!cardElement) return;
     const card = state.cards.find(item => item.id === cardElement.dataset.id);
+    const archiveButton = event.target.closest('[data-archive]');
+    if (archiveButton) {
+      event.stopPropagation();
+      if (!archiveArmed.has(card.id)) {
+        archiveArmed.add(card.id);
+        archiveButton.textContent = '한 번 더';
+        setTimeout(() => archiveArmed.delete(card.id), 3000);
+        return;
+      }
+      archiveArmed.delete(card.id);
+      await pushBackup();
+      await removeCard(card.id);
+      await refresh();
+      showToast('완료된 카드를 정리했어요');
+      return;
+    }
     const move = event.target.closest('[data-move]');
     if (move) { await moveCard(card, Number(move.dataset.move)); return; }
     if (!el('sideListLayer').hidden) closeSideList();
@@ -359,18 +383,22 @@
     showToast('카드를 삭제했어요');
   });
 
-  async function dailyBackup() {
-    const localNow = new Date();
-    const today = `${localNow.getFullYear()}-${String(localNow.getMonth() + 1).padStart(2, '0')}-${String(localNow.getDate()).padStart(2, '0')}`;
-    if (localStorage.getItem('kanbanboard-backup-date') === today) return;
+  async function pushBackup() {
     try {
       const cards = await getAllCards();
       const exportedData = { app: 'kanbanboard', exportedAt: new Date().toISOString(), cards };
       const res = await fetch('https://appointee-unnoticed-donated.ngrok-free.dev/api/app-backup/kanbanboard', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(exportedData)
       });
-      if (res.ok) localStorage.setItem('kanbanboard-backup-date', today);
-    } catch (_) {}
+      return res.ok;
+    } catch (_) { return false; }
+  }
+
+  async function dailyBackup() {
+    const localNow = new Date();
+    const today = `${localNow.getFullYear()}-${String(localNow.getMonth() + 1).padStart(2, '0')}-${String(localNow.getDate()).padStart(2, '0')}`;
+    if (localStorage.getItem('kanbanboard-backup-date') === today) return;
+    if (await pushBackup()) localStorage.setItem('kanbanboard-backup-date', today);
   }
 
   async function init() {
